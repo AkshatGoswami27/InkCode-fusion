@@ -57,14 +57,6 @@ const Header = () => {
             ))}
           </div>
         </nav>
-        <a
-          href="https://github.com/MadhavKrishanGoswami/InkCode-Fusion"
-          className="button hidden mr-16 text-n-1/50 transition-colors font-codec hover:text-n-1 lg:block"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          GitHub
-        </a>
         <button
           className="StartButton flex items-center uppercase justify-center font-code font-bold
     px-8 py-4 rounded-full text-xs text-color-1 bg-color-3 leading-[90%] transition duration-1000 ease-in-out transform hover:scale-105"
