@@ -9,10 +9,10 @@ const redis = require("redis");
 app.use(cors());
 
 const client = redis.createClient({
-  // url: 'redis://redis:6379'  // The URL should match the service name in your Docker Compose
+  url: process.env.REDIS_URL || 'redis://localhost:6379'
 });
 const subClient = redis.createClient({
-  // url: 'redis://redis:6379'  // The URL should match the service name in your Docker Compose
+  url: process.env.REDIS_URL || 'redis://localhost:6379'
 });
 async function startRedis() {
   try {
