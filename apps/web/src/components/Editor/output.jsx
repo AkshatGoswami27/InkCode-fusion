@@ -44,10 +44,12 @@ const Output = ({ socket }) => {
             type="text"
             readOnly
             value={
-              output
-                ? `${output.stdout}` || `${output.stderr.split("\n").slice(1).join("\n")}`
-                : ""
-            }
+            output
+    ? typeof output === "string"
+      ? output
+      : output.stdout || output.stderr || ""
+    : ""
+}
             className=" relative resize-none top-6 h-4/5 w-full flex-shrink-0 text-Output rounded-xl
          p-0 m-0 mt-2 outline-none border-none bg-Darkblue overflow-hidden text-xl text-white"
           />

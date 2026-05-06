@@ -75,11 +75,12 @@ const Editor = ({ socket, roomId }) => {
       });
     }
   }, [socket]);
-  const runCode = async () => {
-    if (socket) {
-      await socket.emit(ACTIONS.RUN_CODE, { code: codeRef.current, roomId });
-    }
-  };
+const runCode = async () => {
+  const code = codeRef.current || editorRef.current.getValue();
+  if (socket && code) {
+    socket.emit(ACTIONS.RUN_CODE, { code, roomId });
+  }
+};
 
   return (
     <div className=" ml-[1.5vw] mt-[0.5vw]">
