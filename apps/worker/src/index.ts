@@ -3,11 +3,11 @@ import piston from "piston-client"
 
 
 const client = createClient({
-  // url: 'redis://redis:6379'  // The URL should match the service name in your Docker Compose
+  url: process.env.REDIS_URL || 'redis://localhost:6379'
 });
 
 const pubClient = createClient({
-  // url: 'redis://redis:6379'
+  url: process.env.REDIS_URL || 'redis://localhost:6379'
 });
 
 const RESTRICTED_MODULES = ['os', 'subprocess', 'sys', 'builtins', 'importlib'];
