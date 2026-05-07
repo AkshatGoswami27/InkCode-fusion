@@ -80,33 +80,36 @@ const VideoRoom = ({ roomId, leaveRoom, showChat, showPeople }) => {
     };
   }, []);
 
-  return (
-    <>
-<div className="VideoCall flex flex-row space-x-6 absolute top-[14vw] left-[50vw] z-[100]">
-  {users.map((user, index) => (
-    <div
-      key={user.uid}
-      style={{
-        visibility: index === 0 && !isCameraEnabled ? "hidden" : "visible"
-      }}
+return (
+  <>
+    <div className="VideoCall flex flex-row space-x-6 absolute top-[14vw] left-[50vw] z-[100]"
+      style={{ minWidth: `${users.length * 17}vw` }}
     >
-      <VideoPlayer
-        user={user}
+      {users.map((user, index) => (
+        <div
+          key={user.uid}
+          style={{
+            visibility: index === 0 && !isCameraEnabled ? "hidden" : "visible",
+            minWidth: "16vw"
+          }}
+        >
+          <VideoPlayer
+            user={user}
+            isCameraEnabled={isCameraEnabled}
+          />
+        </div>
+      ))}
+    </div>
+    <div className="fixed bottom-[0.9vw] right-[25vw]">
+      <Controls
+        toggleMic={toggleMic}
+        toggleCamera={toggleCamera}
+        isMicEnabled={isMicEnabled}
         isCameraEnabled={isCameraEnabled}
+        leaveRoom={leaveRoom}
       />
     </div>
-  ))}
-      </div>
-      <div className="fixed bottom-[0.9vw] right-[25vw]">
-        <Controls
-          toggleMic={toggleMic}
-          toggleCamera={toggleCamera}
-          isMicEnabled={isMicEnabled}
-          isCameraEnabled={isCameraEnabled}
-          leaveRoom={leaveRoom}
-        />
-      </div>
-    </>
-  );
+  </>
+);
 };
 export default VideoRoom;
