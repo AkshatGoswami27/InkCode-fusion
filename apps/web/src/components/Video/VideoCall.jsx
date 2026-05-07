@@ -14,6 +14,7 @@ const VideoRoom = ({ roomId, leaveRoom, showChat, showPeople }) => {
   const [isMicEnabled, setIsMicEnabled] = useState(true);
   const [isCameraEnabled, setIsCameraEnabled] = useState(true);
   const [hiddenUsers, setHiddenUsers] = useState({});
+  const localUid = useRef(null);
 
   const toggleMic = () => {
     localTracks[0].setEnabled(!isMicEnabled);
@@ -62,9 +63,10 @@ const VideoRoom = ({ roomId, leaveRoom, showChat, showPeople }) => {
 
     client.current
       .join(APP_ID, CHANNEL, TOKEN, null)
-      .then((uid) =>
-        Promise.all([AgoraRTC.createMicrophoneAndCameraTracks(), uid])
-      )
+      .then((uid) => {
+        localUid.current = uid;
+        return Promise.all([AgoraRTC.createMicrophoneAndCameraTracks(), uid]);
+      })
       .then(([tracks, uid]) => {
         const [audioTrack, videoTrack] = tracks;
         setLocalTracks(tracks);
@@ -87,20 +89,21 @@ const VideoRoom = ({ roomId, leaveRoom, showChat, showPeople }) => {
   return (
     <>
       <div className="VideoCall flex flex-row space-x-6 absolute top-[14vw] left-[50vw] z-[100]">
-        {users.map((user, index) => (
-          <div
-            key={user.uid}
-            style={{
-              minWidth: "16vw",
-              visibility:
-                (index === 0 && !isCameraEnabled) || hiddenUsers[user.uid]
-                  ? "hidden"
-                  : "visible",
-            }}
-          >
-            <VideoPlayer user={user} isCameraEnabled={isCameraEnabled} />
-          </div>
-        ))}
+        {users.map((user) => {
+          const isLocal = user.uid === localUid.current;
+          const isHidden = isLocal ? !isCameraEnabled : hiddenUsers[user.uid];
+          return (
+            <div
+              key={user.uid}
+              style={{
+                minWidth: "16vw",
+                visibility: isHidden ? "hidden" : "visible",
+              }}
+            >
+              <VideoPlayer user={user} isCameraEnabled={isCameraEnabled} />
+            </div>
+          );
+        })}
       </div>
       <div className="fixed bottom-[0.9vw] right-[25vw]">
         <Controls
