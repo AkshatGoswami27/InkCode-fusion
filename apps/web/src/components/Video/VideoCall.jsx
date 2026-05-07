@@ -87,7 +87,7 @@ const VideoRoom = ({ roomId, leaveRoom, showChat, showPeople }) => {
     <div
       key={user.uid}
       style={{
-        display: index === 0 && !isCameraEnabled ? "none" : "block"
+        visibility: index === 0 && !isCameraEnabled ? "hidden" : "visible"
       }}
     >
       <VideoPlayer
