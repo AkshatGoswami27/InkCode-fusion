@@ -1,20 +1,20 @@
 import React, { useEffect, useRef } from "react";
-//import "./Video.css";
 import { motion } from "framer-motion";
-export const VideoPlayer = ({ user, userName }) => {
+
+export const VideoPlayer = ({ user, isCameraEnabled }) => {
   const ref = useRef();
 
   useEffect(() => {
-    user.videoTrack.play(ref.current);
-  }, []);
+    if (user.videoTrack) {
+      user.videoTrack.play(ref.current);
+    }
+  }, [user.videoTrack, isCameraEnabled]);
 
-  const containerSize = 300; // Adjust this value based on your desired container size
-  // Adjust this value based on your desired gap between containers
+  const containerSize = 300;
+
   return (
     <motion.div
-      style={{
-        cursor: "grab",
-      }}
+      style={{ cursor: "grab" }}
       drag
       dragConstraints={{
         top: -containerSize,
