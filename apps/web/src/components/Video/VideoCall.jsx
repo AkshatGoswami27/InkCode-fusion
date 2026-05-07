@@ -1,23 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import AgoraRTC from "agora-rtc-sdk-ng";
 import { VideoPlayer } from "./VideoPlayer";
 import Controls from "./controls";
 
-//import "./Video.css";
 const VideoRoom = ({ roomId, leaveRoom, showChat, showPeople }) => {
   const APP_ID = "d702f637f7b34bde9607a32f20812a66";
   const TOKEN = null;
   const CHANNEL = roomId;
-  const client = AgoraRTC.createClient({
-    mode: "rtc",
-    codec: "vp8",
-  });
+  const client = useRef(AgoraRTC.createClient({ mode: "rtc", codec: "vp8" }));
 
   const [users, setUsers] = useState([]);
   const [localTracks, setLocalTracks] = useState([]);
   const [isMicEnabled, setIsMicEnabled] = useState(true);
   const [isCameraEnabled, setIsCameraEnabled] = useState(true);
-  const [tracks, setTracks] = useState([]);
+  const [hiddenUsers, setHiddenUsers] = useState({});
 
   const toggleMic = () => {
     localTracks[0].setEnabled(!isMicEnabled);
@@ -30,28 +26,41 @@ const VideoRoom = ({ roomId, leaveRoom, showChat, showPeople }) => {
   };
 
   const handleUserJoined = async (user, mediaType) => {
-    await client.subscribe(user, mediaType);
-
+    await client.current.subscribe(user, mediaType);
     if (mediaType === "video") {
-      setUsers((previousUsers) => [...previousUsers, user]);
+      setHiddenUsers((prev) => ({ ...prev, [user.uid]: false }));
+      setUsers((prev) => {
+        const exists = prev.find((u) => u.uid === user.uid);
+        if (exists) return prev.map((u) => u.uid === user.uid ? user : u);
+        return [...prev, user];
+      });
     }
-
     if (mediaType === "audio") {
       user.audioTrack.play();
     }
   };
 
   const handleUserLeft = (user) => {
-    setUsers((previousUsers) =>
-      previousUsers.filter((u) => u.uid !== user.uid)
-    );
+    setUsers((prev) => prev.filter((u) => u.uid !== user.uid));
+    setHiddenUsers((prev) => {
+      const updated = { ...prev };
+      delete updated[user.uid];
+      return updated;
+    });
+  };
+
+  const handleUserUnpublished = (user, mediaType) => {
+    if (mediaType === "video") {
+      setHiddenUsers((prev) => ({ ...prev, [user.uid]: true }));
+    }
   };
 
   useEffect(() => {
-    client.on("user-published", handleUserJoined);
-    client.on("user-left", handleUserLeft);
+    client.current.on("user-published", handleUserJoined);
+    client.current.on("user-left", handleUserLeft);
+    client.current.on("user-unpublished", handleUserUnpublished);
 
-    client
+    client.current
       .join(APP_ID, CHANNEL, TOKEN, null)
       .then((uid) =>
         Promise.all([AgoraRTC.createMicrophoneAndCameraTracks(), uid])
@@ -59,57 +68,51 @@ const VideoRoom = ({ roomId, leaveRoom, showChat, showPeople }) => {
       .then(([tracks, uid]) => {
         const [audioTrack, videoTrack] = tracks;
         setLocalTracks(tracks);
-        setUsers((previousUsers) => [
-          ...previousUsers,
-          {
-            uid,
-            videoTrack,
-            audioTrack,
-          },
-        ]);
-        client.publish(tracks);
+        setUsers((prev) => [...prev, { uid, videoTrack, audioTrack }]);
+        client.current.publish(tracks);
       });
+
     return () => {
       for (let localTrack of localTracks) {
         localTrack.stop();
         localTrack.close();
       }
-      client.off("user-published", handleUserJoined);
-      client.off("user-left", handleUserLeft);
-      client.unpublish(tracks).then(() => client.leave());
+      client.current.off("user-published", handleUserJoined);
+      client.current.off("user-left", handleUserLeft);
+      client.current.off("user-unpublished", handleUserUnpublished);
+      client.current.leave();
     };
   }, []);
 
-return (
-  <>
-    <div className="VideoCall flex flex-row space-x-6 absolute top-[14vw] left-[50vw] z-[100]"
-      style={{ minWidth: `${users.length * 17}vw` }}
-    >
-      {users.map((user, index) => (
-        <div
-          key={user.uid}
-          style={{
-            visibility: index === 0 && !isCameraEnabled ? "hidden" : "visible",
-            minWidth: "16vw"
-          }}
-        >
-          <VideoPlayer
-            user={user}
-            isCameraEnabled={isCameraEnabled}
-          />
-        </div>
-      ))}
-    </div>
-    <div className="fixed bottom-[0.9vw] right-[25vw]">
-      <Controls
-        toggleMic={toggleMic}
-        toggleCamera={toggleCamera}
-        isMicEnabled={isMicEnabled}
-        isCameraEnabled={isCameraEnabled}
-        leaveRoom={leaveRoom}
-      />
-    </div>
-  </>
-);
+  return (
+    <>
+      <div className="VideoCall flex flex-row space-x-6 absolute top-[14vw] left-[50vw] z-[100]">
+        {users.map((user, index) => (
+          <div
+            key={user.uid}
+            style={{
+              minWidth: "16vw",
+              visibility:
+                (index === 0 && !isCameraEnabled) || hiddenUsers[user.uid]
+                  ? "hidden"
+                  : "visible",
+            }}
+          >
+            <VideoPlayer user={user} isCameraEnabled={isCameraEnabled} />
+          </div>
+        ))}
+      </div>
+      <div className="fixed bottom-[0.9vw] right-[25vw]">
+        <Controls
+          toggleMic={toggleMic}
+          toggleCamera={toggleCamera}
+          isMicEnabled={isMicEnabled}
+          isCameraEnabled={isCameraEnabled}
+          leaveRoom={leaveRoom}
+        />
+      </div>
+    </>
+  );
 };
+
 export default VideoRoom;
