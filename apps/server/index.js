@@ -14,6 +14,7 @@ const client = redis.createClient({
 const subClient = redis.createClient({
   url: process.env.REDIS_URL || 'redis://localhost:6379'
 });
+
 async function startRedis() {
   try {
     await client.connect();
@@ -27,14 +28,27 @@ async function startRedis() {
 
 startRedis();
 
+// Function to run code using Piston API
+async function runCodeWithPiston(code) {
+  const response = await fetch("https://emkc.org/api/v2/piston/execute", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      language: "python",
+      version: "3.10.0",
+      files: [{ content: code }],
+    }),
+  });
+  const result = await response.json();
+  return result.run;
+}
+
 app.get("/", (req, res) => {
   res.send("Server is up and running!");
 });
 
-// Create an HTTP server using the Express app
 const server = http.createServer(app);
 
-// Create a new instance of the Socket.io server by passing the HTTP server
 const io = new Server(server, {
   cors: {
     origin: "*",
@@ -42,10 +56,8 @@ const io = new Server(server, {
   },
 });
 
-// Map to store the association between user socket IDs and their usernames
 const userSocketMap = {};
 
-// Function to get all connected clients in a specific room
 function getAllConnectedClients(roomId) {
   return Array.from(io.sockets.adapter.rooms.get(roomId) || []).map(
     (socketId) => {
@@ -57,18 +69,12 @@ function getAllConnectedClients(roomId) {
   );
 }
 
-// Event listener for when a new socket connection is established
 io.on("connection", (socket) => {
   console.log("got a connection on server", socket.id);
-  // Event listener for the "JOIN" action
+
   socket.on(ACTIONS.JOIN, ({ roomId, userName }) => {
-    // Map the user's socket ID to their username
     userSocketMap[socket.id] = userName;
-
-    // Make the socket join a specific room
     socket.join(roomId);
-
-    // Get a list of all connected clients in the room
     const clients = getAllConnectedClients(roomId);
     console.log("clients", clients);
     clients.forEach((socketId) => {
@@ -79,39 +85,28 @@ io.on("connection", (socket) => {
       });
     });
   });
+
   socket.on(ACTIONS.SEND_MESSAGE, (data) => {
     socket.in(data.room).emit(ACTIONS.RECEIVE_MESSAGE, data);
   });
+
   socket.on(ACTIONS.RUN_CODE, async ({ code, roomId }) => {
-    if (!code || !code.trim().endsWith(")")) {
-      socket.in(roomId).emit(ACTIONS.OUTPUT, { data: "SyntaxError: incomplete code" });
-      return;
-    }
-
     try {
-      await client.lPush("codeForProcessing", JSON.stringify({ code, roomId }));
-      console.log("Code pushed to Redis queue for processing");
+      console.log("Running code for room:", roomId);
+      const result = await runCodeWithPiston(code);
+      console.log("Code result:", result);
+      const output = result.stdout || result.stderr || "No output";
+      io.to(roomId).emit(ACTIONS.OUTPUT, { data: output });
     } catch (error) {
-      console.error("Redis error:", error);
+      console.error("Error running code:", error);
+      io.to(roomId).emit(ACTIONS.OUTPUT, { data: "Error running code. Please try again." });
     }
-
-    subClient.subscribe("task_updates", function (message, channel) {
-      console.log("Subscribed to task_updates channel");
-      console.log("Received message in channel %s: %s", channel, message);
-      const { messageRoomId, codeOutput } = JSON.parse(message);
-      console.log("messageRoomId", messageRoomId);
-      console.log("roomId", roomId);
-      console.log("codeOutput", codeOutput);
-      if (messageRoomId === roomId) {
-        socket.in(roomId).emit(ACTIONS.OUTPUT, { data: codeOutput });
-        console.log("Output sent to room", roomId);
-      }
-    });
   });
 
   socket.on(ACTIONS.CODE_CHANGE, ({ roomId, code }) => {
     socket.in(roomId).emit(ACTIONS.CODE_CHANGE, { code });
   });
+
   socket.on("disconnecting", () => {
     const rooms = [...socket.rooms];
     rooms.forEach((roomId) => {
@@ -125,7 +120,5 @@ io.on("connection", (socket) => {
   });
 });
 
-// Start the server
 const PORT = process.env.PORT || 4000;
-
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
