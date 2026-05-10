@@ -10,8 +10,9 @@ const Output = ({ socket }) => {
     if (socket) {
       console.log("Checking for socket");
       socket.on(ACTIONS.OUTPUT, ({ data }) => {
-        setOutput(data.run || data);
+        setOutput(data);
         setIsLoading(false);
+        
         console.log(data);
         console.log("Output received");
       });

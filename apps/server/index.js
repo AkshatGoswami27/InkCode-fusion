@@ -4,43 +4,63 @@ const http = require("http");
 const { Server } = require("socket.io");
 const ACTIONS = require("./Actions");
 const cors = require("cors");
-const redis = require("redis");
 
 app.use(cors());
 
-const client = redis.createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379'
-});
-const subClient = redis.createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379'
-});
+// Function to run code using local Python
+async function runCodeWithPython(code) {
+  const { spawn } = require('child_process');
+  const candidates = ['python3', 'python'];
+  let pythonCommand;
 
-async function startRedis() {
-  try {
-    await client.connect();
-    console.log("Connected to Redis");
-    await subClient.connect();
-    console.log("Connected to Redis for subscribing");
-  } catch (error) {
-    console.error("Failed to connect to Redis", error);
+  for (const command of candidates) {
+    try {
+      const process = spawn(command, ['--version']);
+      await new Promise((resolve, reject) => {
+        process.on('error', reject);
+        process.on('exit', (exitCode) => {
+          if (exitCode === 0) resolve();
+          else reject(new Error('Python command failed'));
+        });
+      });
+      pythonCommand = command;
+      break;
+    } catch (err) {
+      continue;
+    }
   }
-}
 
-startRedis();
+  if (!pythonCommand) {
+    throw new Error('Python executable not found on the host');
+  }
 
-// Function to run code using Piston API
-async function runCodeWithPiston(code) {
-  const response = await fetch("https://emkc.org/api/v2/piston/execute", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      language: "python",
-      version: "3.10.0",
-      files: [{ content: code }],
-    }),
+  return new Promise((resolve, reject) => {
+    const python = spawn(pythonCommand, ['-c', code]);
+    let stdout = '';
+    let stderr = '';
+
+    python.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    python.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    python.on('close', (code) => {
+      resolve({ stdout, stderr, exitCode: code });
+    });
+
+    python.on('error', (error) => {
+      reject(error);
+    });
+
+    // Timeout after 10 seconds
+    setTimeout(() => {
+      python.kill();
+      reject(new Error('Code execution timed out'));
+    }, 10000);
   });
-  const result = await response.json();
-  return result.run;
 }
 
 app.get("/", (req, res) => {
@@ -93,7 +113,7 @@ io.on("connection", (socket) => {
   socket.on(ACTIONS.RUN_CODE, async ({ code, roomId }) => {
     try {
       console.log("Running code for room:", roomId);
-      const result = await runCodeWithPiston(code);
+      const result = await runCodeWithPython(code);
       console.log("Code result:", result);
       const output = result.stdout || result.stderr || "No output";
       io.to(roomId).emit(ACTIONS.OUTPUT, { data: output });
