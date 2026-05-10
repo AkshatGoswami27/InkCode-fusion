@@ -83,7 +83,7 @@ const Room = () => {
       socket.off(ACTIONS.DISCONNECTED);
       socket.disconnect();
     };
-  });
+  }, []);
 
   // Redirect to the "/start" route if location.state is not defined
   if (!location.state) {
