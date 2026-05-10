@@ -30,7 +30,9 @@ const options = {
     credentials: true,
   },
 };
-const server = "localhost:4000";
+const server =
+  process.env.REACT_APP_SOCKET_URL ||
+  `${window.location.protocol}//${window.location.hostname}:4000`;
 const socket = io(server, options);
 
 const Room = () => {
