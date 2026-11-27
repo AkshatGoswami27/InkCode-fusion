@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  Created by <a href="https://github.com/AkshatGoswami27">Akshat Goswami</a>
+  Maintained by <a href="https://github.com/AkshatGoswami27">Akshat Goswami</a>
 </p>
 
 ---
