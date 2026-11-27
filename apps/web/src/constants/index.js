@@ -41,7 +41,7 @@ export const navigation = [
   {
     id: "5",
     title: "GitHub",
-    url: "#https://github.com/MadhavKrishanGoswami/InkCode-Fusion",
+    url: "https://github.com/AkshatGoswami27/InkCodeFusion",
     onlyMobile: true,
   },
   {

@@ -9,7 +9,7 @@
     "start": "node index.js",
     "dev": "nodemon index.js"
   },
-  "author": "Madhav Krishan Goswami",
+  "author": "Akshat Goswami",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",

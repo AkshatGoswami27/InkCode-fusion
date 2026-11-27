@@ -40,8 +40,8 @@ Please note that this project adheres to a [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ### Reporting Bugs
 
-- Check if the issue is already reported in the [issues](https://github.com/MadhavKrishanGoswami/InkCode-Fusion/issues) section.
-- If not, [open a new issue](https://github.com/MadhavKrishanGoswami/InkCode-Fusion/issues/new) with detailed steps to reproduce the bug.
+- Check if the issue is already reported in the [issues](https://github.com/AkshatGoswami27/InkCodeFusion/issues) section.
+- If not, [open a new issue](https://github.com/AkshatGoswami27/InkCodeFusion/issues/new) with detailed steps to reproduce the bug.
 - Be sure to include details such as the version of the project you are using, your operating system, and any relevant logs.
 
 ### Requesting Features
@@ -126,7 +126,7 @@ To run **InkCode Fusion** on your local machine, follow these steps:
 1. Clone the Repository
    - Start by cloning the repository:
      ```bash
-     git clone https://github.com/MadhavKrishanGoswami/InkCode-Fusion.git
+     git clone https://github.com/AkshatGoswami27/InkCodeFusion.git
      cd InkCode-Fusion
      
      ```

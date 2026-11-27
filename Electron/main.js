@@ -38,7 +38,7 @@ const menu = [
               click: () => {
                 //copy link to clipboard
                 clipboard.writeText(
-                  "https://github.com/MadhavKrishanGoswami/InkCode-Fusion"
+                  "https://github.com/AkshatGoswami27/InkCodeFusion"
                 );
               },
             },
@@ -59,7 +59,7 @@ const menu = [
               click: () => {
                 //copy link to clipboard
                 clipboard.writeText(
-                  "https://github.com/MadhavKrishanGoswami/InkCode-Fusion"
+                  "https://github.com/AkshatGoswami27/InkCodeFusion"
                 );
               },
             },

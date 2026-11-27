@@ -1,7 +1,5 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import FacebookRoundedIcon from "@mui/icons-material/FacebookRounded";
-import TwitterIcon from "@mui/icons-material/Twitter";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import { motion } from "framer-motion";
@@ -60,28 +58,14 @@ const End = () => {
         </div>
         <div className="Icons">
           <a
-            href="https://www.facebook.com/madhav.goswami.9461"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <FacebookRoundedIcon className="icon m-0 mx-1" style={iconStyle} />
-          </a>
-          <a
-            href="https://twitter.com/Goswamimadhav24"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <TwitterIcon className="icon m-0 mx-1" style={iconStyle} />
-          </a>
-          <a
-            href="https://github.com/MadhavKrishanGoswami"
+            href="https://github.com/AkshatGoswami27"
             target="_blank"
             rel="noopener noreferrer"
           >
             <GitHubIcon className="icon m-0 mx-1" style={iconStyle} />
           </a>
           <a
-            href="https://www.linkedin.com/in/madhav-krishan-goswami-3ba50a289/"
+            href="https://www.linkedin.com/in/akshat-goswami2427"
             target="_blank"
             rel="noopener noreferrer"
           >
